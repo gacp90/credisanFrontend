@@ -1,0 +1,222 @@
+<div class="d-flex align-items-center mb-4">
+  <button class="btn btn-outline-secondary border-opacity-25 text-white shadow-sm me-3" routerLink="/dashboard/plantillas">
+    <i class="bi bi-arrow-left me-1"></i> Volver
+  </button>
+  <div>
+    <h4 class="mb-0 text-white fw-bold"><i class="bi bi-pencil-square text-primary me-2"></i> Diseñar Nueva Plantilla</h4>
+    <p class="text-muted small mb-0">Crea el mensaje automático que se enviará por WhatsApp</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+  <div class="col-lg-7 col-md-12">
+    <div class="card shadow-sm border-0" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+      <div class="card-body p-4">
+        
+        <div class="row g-3 mb-4">
+          <div class="col-md-5">
+            <label class="form-label text-white small fw-medium">Nombre de la Plantilla *</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" 
+                   [(ngModel)]="nuevaPlantilla.name" placeholder="ej: alerta_ganador_2026" [disabled]="sendTemplate">
+            <small class="text-muted" style="font-size: 0.7rem;">Sin espacios, usa guiones bajos (_).</small>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-white small fw-medium">Categoría *</label>
+            <select class="form-select bg-dark text-white border-secondary shadow-none" [(ngModel)]="nuevaPlantilla.category" [disabled]="sendTemplate">
+              <option value="MARKETING">Marketing</option>
+              <option value="UTILITY">Utilidad</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-white small fw-medium">Idioma *</label>
+            <select class="form-select bg-dark text-white border-secondary shadow-none" [(ngModel)]="nuevaPlantilla.language" [disabled]="sendTemplate">
+              <option value="es">Español</option>
+              <option value="en">Inglés</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="alert bg-success bg-opacity-10 border-success border-opacity-25 text-success rounded-3 p-3 mb-4">
+          <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Atención!</h6>
+          <p class="small mb-2">Recuerda que al crear la plantilla evita usar palabras como <span class="fw-bold text-white">Sorteo, números, Licores, Promesas de premio</span>.</p>
+          <hr class="border-success border-opacity-25">
+          <p class="small mb-0">En su defecto puedes usar: <span class="fw-bold text-white">Proyecto, iniciativa, dinámica, tickets, agencia, evento</span>. Si el san es dinero, abrévialo con 5k bendiciones.</p>
+        </div>
+
+        <!-- ENCABEZADO -->
+        <div class="bg-dark p-3 rounded-3 border border-secondary border-opacity-25 mb-4">
+          <label class="form-label text-info small fw-bold mb-3"><i class="bi bi-layout-text-window me-1"></i> Encabezado (Opcional)</label>
+          <select class="form-select bg-dark text-white border-secondary shadow-none mb-3" [(ngModel)]="nuevaPlantilla.headerType" (change)="cambioHeaderType()" [disabled]="sendTemplate">
+            <option value="NONE">Sin encabezado</option>
+            <option value="TEXT">Solo Texto</option>
+            <option value="IMAGE">Imagen</option>
+            <option value="VIDEO">Video</option>
+          </select>
+
+          <input *ngIf="nuevaPlantilla.headerType === 'TEXT'" type="text" 
+                 class="form-control bg-dark text-white border-secondary shadow-none" [(ngModel)]="nuevaPlantilla.headerText" 
+                 placeholder="Escribe el título aquí (máx 60 caracteres)" [disabled]="sendTemplate" maxlength="60">
+          
+          <div *ngIf="['IMAGE', 'VIDEO'].includes(nuevaPlantilla.headerType)" class="border border-secondary border-opacity-50 bg-dark rounded p-3 text-center border-dashed">
+            <label class="form-label text-primary small fw-medium mb-2 d-block">
+              Adjuntar {{ nuevaPlantilla.headerType === 'IMAGE' ? 'Imagen (Max 5MB)' : 'Video MP4 (Max 16MB)' }}
+            </label>
+            <input type="file" id="mediaInput" class="form-control bg-dark text-muted border-secondary shadow-none d-block mx-auto" 
+                   [accept]="nuevaPlantilla.headerType === 'IMAGE' ? 'image/jpeg, image/png' : 'video/mp4'"
+                   (change)="onFileSelected($event)" [disabled]="sendTemplate" style="max-width: 300px;">
+            
+            <div *ngIf="archivoSeleccionado" class="mt-3 bg-secondary bg-opacity-25 p-2 rounded-pill d-inline-flex align-items-center px-3">
+              <i class="bi bi-check-lg text-success me-2"></i> <span class="small fw-medium text-white me-3">{{ archivoSeleccionado.name }}</span>
+              <button class="btn btn-sm btn-link text-danger p-0" (click)="limpiarArchivo()" [disabled]="sendTemplate"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CUERPO DEL MENSAJE -->
+        <div class="border border-primary border-opacity-50 rounded-3 p-3 mb-4">
+          <label class="form-label text-primary fw-bold small mb-3">Mensaje Principal (Body) *</label>
+          
+          <div class="d-flex align-items-center flex-wrap gap-2 mb-2 position-relative">
+            <span class="text-muted small">Insertar variable:</span>
+            
+            <button class="btn btn-sm btn-outline-primary border-opacity-50 shadow-none" (click)="insertarVariable('{{name}}', bodyTextArea)" [disabled]="sendTemplate">
+                {{'{'+'{name}'+'}'}}
+            </button>
+            
+            <button class="btn btn-sm btn-outline-warning border-opacity-50 shadow-none ms-auto" (click)="toggleEmojis()" [disabled]="sendTemplate" type="button">
+                <i class="bi bi-emoji-smile"></i> Emojis
+            </button>
+
+            <!-- OJO: Si usas @ctrl/ngx-emoji-mart asegúrate que esté importado -->
+            <div *ngIf="mostrarEmojis" class="position-absolute shadow-lg" style="z-index: 1050; top: 100%; right: 0; margin-top: 5px; border-radius: 8px;">
+                <!-- <emoji-mart (emojiClick)="addEmoji($event, bodyTextArea)" [showPreview]="false" [isNative]="true" title="Elige un emoji" emoji="point_up"></emoji-mart> -->
+                <div class="bg-dark p-2 text-muted small border border-secondary">Módulo Emojis Aquí</div>
+            </div>
+          </div>
+
+          <textarea #bodyTextArea class="form-control bg-dark text-white border-secondary shadow-none" rows="8" 
+                    [(ngModel)]="nuevaPlantilla.bodyText" (ngModelChange)="actualizarVariables()"
+                    placeholder="Hola {{'{'+'{name}'+'}'}}, tu ticket es {{'{'+'{number}'+'}'}}..." [disabled]="sendTemplate">
+          </textarea>
+          
+          <!-- VARIABLES (EJEMPLOS) -->
+          <div *ngIf="variablesDetectadas.length > 0" class="mt-3 p-3 bg-info bg-opacity-10 rounded-3 border border-info border-opacity-25">
+            <h6 class="text-info fw-bold mb-1" style="font-size: 0.85rem;"><i class="bi bi-info-circle me-1"></i> Ejemplos obligatorios para Meta</h6>
+            <p class="small text-muted mb-3">Escribe un ejemplo real para cada variable dinámica.</p>
+            
+            <div class="row g-2">
+              <div *ngFor="let v of variablesDetectadas" class="col-md-6">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-dark border-secondary text-info fw-bold">{{ '{'+'{'+v+'}'+'}' }}</span>
+                  <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" [(ngModel)]="ejemplosVariables[v]" placeholder="Ej: Juan" [disabled]="sendTemplate">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="mb-4">
+          <label class="form-label text-muted small fw-medium">Pie de página (Footer) - Opcional</label>
+          <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" [(ngModel)]="nuevaPlantilla.footerText" 
+                 placeholder="Texto gris pequeño al final (ej: Aplican términos)" maxlength="60" [disabled]="sendTemplate">
+        </div>
+
+        <!-- RESPUESTAS RÁPIDAS -->
+        <div class="bg-dark p-3 rounded-3 border border-secondary border-opacity-25 mb-4">
+          <label class="form-label text-info small fw-bold mb-3"><i class="bi bi-reply-fill me-1"></i> Respuestas Rápidas (Opcional) - Max 3</label>
+          
+          <div class="mb-3" *ngIf="nuevaPlantilla.quickReplies.length < 3">
+            <div class="input-group">
+              <input type="text" class="form-control bg-dark text-white border-info shadow-none" [(ngModel)]="nuevaRespuesta" 
+                     placeholder="Escribe una respuesta (ej: Me interesa)" maxlength="25"
+                     (keyup.enter)="agregarRespuestaRapida()" [disabled]="sendTemplate">
+              <button class="btn btn-info text-white" (click)="agregarRespuestaRapida()" [disabled]="sendTemplate || !nuevaRespuesta.trim()">
+                <i class="bi bi-plus-lg"></i> Agregar
+              </button>
+            </div>
+            <div class="text-end mt-1">
+              <small class="fw-medium" [ngClass]="(nuevaRespuesta.length || 0) === 25 ? 'text-danger' : 'text-muted'" style="font-size: 0.7rem;">
+                {{ nuevaRespuesta.length || 0 }} / 25
+              </small>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <div *ngFor="let qr of nuevaPlantilla.quickReplies; let i = index" 
+                 class="bg-secondary bg-opacity-25 border border-secondary rounded-pill px-3 py-1 shadow-sm d-flex align-items-center">
+              <span class="me-2 small fw-bold text-white">{{ qr.text }}</span>
+              <button class="btn btn-sm btn-link text-danger p-0" (click)="eliminarRespuestaRapida(i)" [disabled]="sendTemplate">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN ENVIAR -->
+        <button [disabled]="sendTemplate" (click)="guardarYEnviar()" class="btn btn-success btn-lg w-100 fw-bold shadow-sm" style="border-radius: 0.75rem;">
+          <span *ngIf="!sendTemplate"><i class="bi bi-send-fill me-2"></i> Guardar y Enviar a Revisión</span>
+          <span *ngIf="sendTemplate">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            {{ textoEstado }}
+          </span>              
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMNA DERECHA: VISTA PREVIA (Sticky) -->
+  <div class="col-lg-5 col-md-12">
+    <div style="position: sticky; top: 20px;">
+      <h6 class="text-muted text-center mb-3 fw-bold small">VISTA PREVIA DEL MENSAJE</h6>
+      
+      <!-- Fondo WhatsApp Clásico -->
+      <div class="p-4 rounded-4 shadow-lg border border-secondary border-opacity-25" style="background-color: #efeae2;">
+        
+        <div class="mb-2" style="background: white; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+          <div style="padding: 10px;">
+            
+            <div *ngIf="nuevaPlantilla.headerType === 'IMAGE'" class="mb-2 bg-light rounded d-flex align-items-center justify-content-center overflow-hidden" style="height: 150px;">
+              <img *ngIf="vistaPreviaUrl" [src]="vistaPreviaUrl" class="w-100 h-100" style="object-fit: cover;">
+              <i *ngIf="!vistaPreviaUrl" class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+            </div>
+            
+            <div *ngIf="nuevaPlantilla.headerType === 'VIDEO'" class="mb-2 bg-dark rounded d-flex align-items-center justify-content-center position-relative overflow-hidden" style="height: 150px;">
+              <i class="bi bi-camera-video text-white" style="font-size: 3rem;"></i>
+              <div *ngIf="archivoSeleccionado" class="position-absolute" style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 50%;">
+                <i class="bi bi-play-fill text-white" style="font-size: 1.5rem;"></i>
+              </div>
+            </div>
+
+            <strong *ngIf="nuevaPlantilla.headerType === 'TEXT' && nuevaPlantilla.headerText" class="d-block mb-2 text-dark" style="font-size: 1.05em;">
+              {{ nuevaPlantilla.headerText }}
+            </strong>
+
+            <p class="mb-1 text-dark" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.95rem;">
+              {{ nuevaPlantilla.bodyText || 'El contenido de tu mensaje aparecerá aquí...' }}
+            </p>
+
+            <span *ngIf="nuevaPlantilla.footerText" class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+              {{ nuevaPlantilla.footerText }}
+            </span>
+
+            <div class="text-end text-muted mt-1" style="font-size: 0.65rem;">
+              10:42 AM <i class="bi bi-check2-all text-info fs-6"></i>
+            </div>
+          </div>
+
+          <div *ngIf="nuevaPlantilla.quickReplies.length > 0" class="d-flex flex-column w-100 border-top" style="border-color: #f0f0f0 !important;">
+            <div *ngFor="let qr of nuevaPlantilla.quickReplies" class="text-center py-2 text-primary fw-medium" style="border-bottom: 1px solid #f0f0f0;">
+              <i class="bi bi-reply-fill me-1" style="font-size: 1rem; vertical-align: middle;"></i> 
+              {{ qr.text }}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

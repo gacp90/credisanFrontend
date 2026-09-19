@@ -1,0 +1,21 @@
+<div class="d-flex min-vh-100 bg-body">
+  
+  <!-- Barra Lateral -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Contenedor Derecho (Header + Contenido) -->
+  <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+    
+    <!-- Cabecera Superior -->
+    <app-header></app-header>
+
+    <!-- Área de las Vistas Protegidas (Dashboard, Clientes, etc.) -->
+    <main class="flex-grow-1 p-4 overflow-auto">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- Pie de Página -->
+    <app-footer></app-footer>
+    
+  </div>
+</div>

@@ -1,0 +1,161 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="text-white fw-bold mb-1"><i class="bi bi-whatsapp text-success me-2"></i> Mis Plantillas</h4>
+    <p class="text-muted small mb-0">Gestiona tus mensajes preaprobados por Meta</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-info d-flex align-items-center gap-2 shadow-sm border-opacity-50 text-white" 
+            (click)="sincronizarConMeta()" [disabled]="sincronizando">
+      <i class="bi bi-arrow-repeat" [class.fa-spin]="sincronizando"></i> 
+      <span class="d-none d-md-inline">{{ sincronizando ? 'Sincronizando...' : 'Sincronizar' }}</span>
+    </button>
+    <!-- Asegúrate de tener esta ruta configurada en tu dashboard.routes.ts -->
+    <button class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" routerLink="/dashboard/crear-plantillas">
+      <i class="bi bi-plus-lg"></i> Nueva Plantilla
+    </button>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+  <div class="card-header border-bottom border-secondary border-opacity-25 bg-transparent py-3">
+    <div class="d-flex flex-wrap gap-3">
+      <div class="d-flex align-items-center">
+        <label class="text-muted small fw-medium me-2 mb-0">Mostrar:</label>
+        <select class="form-select form-select-sm bg-dark text-white border-secondary shadow-none w-auto" 
+                [value]="query.hasta" #mostrar (change)="limiteChange(mostrar.value)">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+        </select>
+      </div>
+      <div class="d-flex align-items-center">
+        <label class="text-muted small fw-medium me-2 mb-0">Estado:</label>
+        <select class="form-select form-select-sm bg-dark text-white border-secondary shadow-none w-auto" 
+                #statusS (change)="statusChange(statusS.value)">
+            <option value="Activos">Activas</option>
+            <option value="Deshabilitados">Deshabilitadas</option>
+        </select>    
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    <div *ngIf="cargandoLista" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted small">Cargando plantillas desde Meta...</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!cargandoLista">
+      <table class="table table-borderless text-white mb-0 align-middle">
+        <thead class="border-bottom border-secondary border-opacity-25 bg-dark">
+          <tr>
+            <th class="text-muted fw-medium small py-3 ps-4">Nombre</th>
+            <th class="text-muted fw-medium small py-3">Categoría</th>
+            <th class="text-muted fw-medium small py-3 text-center">Estado (Meta)</th>
+            <th class="text-muted fw-medium small py-3 text-center">Activa</th>
+            <th class="text-muted fw-medium small py-3 text-end pe-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr *ngIf="templates.length === 0">
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-chat-square-text mb-3 d-block text-primary border-opacity-50" style="font-size: 2.5rem;"></i>
+              <h6 class="text-white">No tienes plantillas creadas</h6>
+              <p class="small">Haz clic en "Nueva Plantilla" para diseñar mensajes automáticos.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let p of templates" class="border-bottom border-secondary border-opacity-10">
+            <td class="py-3 ps-4">
+              <h6 class="mb-0 fw-bold text-white">{{ p.name }}</h6>
+              <small class="text-muted text-uppercase">{{ p.language }}</small>
+            </td>
+            <td class="py-3">
+              <span class="badge bg-dark border border-secondary text-muted">{{ p.category }}</span>
+            </td>
+            <td class="py-3 text-center">
+              <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill" *ngIf="p.status === 'APPROVED'"><i class="bi bi-check-circle me-1"></i> Aprobada</span>
+              <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill" *ngIf="p.status === 'PENDING'"><i class="bi bi-clock-history me-1"></i> Revisión</span>
+              <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill" *ngIf="p.status === 'REJECTED'"><i class="bi bi-x-circle me-1"></i> Rechazada</span>
+            </td>
+            <td class="py-3 text-center">
+              <div class="form-check form-switch d-inline-block">
+                <input class="form-check-input shadow-none cursor-pointer" type="checkbox" role="switch" 
+                       [id]="'switch_' + p._id" [(ngModel)]="p.active" (change)="toggleActiva(p)">
+              </div>
+            </td>
+            <td class="py-3 pe-4 text-end">
+              <button class="btn btn-sm btn-outline-info border-opacity-25 text-info shadow-none" (click)="abrirVistaPrevia(p)" title="Vista Previa">
+                <i class="bi bi-eye"></i>
+              </button>
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISTA PREVIA (Estilo WhatsApp Nativo adaptado) -->
+<div class="modal-backdrop fade show" *ngIf="mostrarModalPreview" style="background: rgba(0,0,0,0.7); position: fixed; top:0; left:0; width:100%; height:100%; z-index: 1040;"></div>
+
+<div class="modal fade show" *ngIf="mostrarModalPreview" style="display: block; z-index: 1050;" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+    <div class="modal-content border-0 bg-transparent shadow-none">
+      
+      <div class="position-relative">
+        <button type="button" class="btn btn-danger btn-sm position-absolute rounded-circle shadow" 
+                style="top: -15px; right: -15px; z-index: 10; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" 
+                (click)="cerrarVistaPrevia()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+
+        <div class="p-4 rounded-4 shadow-lg border border-secondary border-opacity-25" style="background-color: #efeae2;">
+          <h6 class="text-center text-muted mb-3 fw-bold" style="font-size: 0.75rem;">VISTA PREVIA: {{ plantillaSeleccionada?.name | uppercase }}</h6>
+          
+          <div class="mb-2" style="background: white; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            
+            <div style="padding: 10px;">
+              <div *ngIf="plantillaSeleccionada?.headerType === 'IMAGE'" class="mb-2 bg-light rounded d-flex align-items-center justify-content-center overflow-hidden" style="height: 160px;">
+                <img *ngIf="plantillaSeleccionada?.headerContent" [src]="plantillaSeleccionada.headerContent" class="w-100 h-100" style="object-fit: cover;">
+                <i *ngIf="!plantillaSeleccionada?.headerContent" class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+              </div>
+              
+              <div *ngIf="plantillaSeleccionada?.headerType === 'VIDEO'" class="mb-2 bg-dark rounded d-flex align-items-center justify-content-center position-relative overflow-hidden" style="height: 160px;">
+                <video *ngIf="plantillaSeleccionada?.headerContent" [src]="plantillaSeleccionada.headerContent" class="w-100 h-100" style="object-fit: cover;" controls controlsList="nodownload"></video>
+                <i *ngIf="!plantillaSeleccionada?.headerContent" class="bi bi-camera-video text-muted" style="font-size: 3rem;"></i>
+              </div>
+
+              <strong *ngIf="plantillaSeleccionada?.headerType === 'TEXT'" class="d-block mb-2 text-dark" style="font-size: 1.05em;">
+                {{ plantillaSeleccionada?.headerContent }}
+              </strong>
+
+              <p class="mb-1 text-dark" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.95rem;">
+                {{ plantillaSeleccionada?.bodyText }}
+              </p>
+
+              <span *ngIf="plantillaSeleccionada?.footerText" class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                {{ plantillaSeleccionada?.footerText }}
+              </span>
+
+              <div class="text-end text-muted mt-1" style="font-size: 0.65rem;">
+                {{ plantillaSeleccionada?.createdAt | date:'shortTime' }} <i class="bi bi-check2-all text-info fs-6"></i>
+              </div>
+            </div>
+
+            <div *ngIf="plantillaSeleccionada?.buttons?.length > 0" class="d-flex flex-column w-100 border-top" style="border-color: #f0f0f0 !important;">
+              <div *ngFor="let btn of plantillaSeleccionada.buttons" class="text-center py-2 text-primary fw-medium" style="border-bottom: 1px solid #f0f0f0; cursor: pointer;">
+                <i class="bi bi-reply-fill me-1" style="font-size: 1rem; vertical-align: middle;"></i> 
+                {{ btn.text ? btn.text : btn }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

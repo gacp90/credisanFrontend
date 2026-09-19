@@ -1,1 +1,66 @@
-/* You can add global styles to this file, and also import other style files */
+/* 1. Importar tipografía moderna (Google Fonts) */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* 2. SOBRESCRIBIR VARIABLES DE BOOTSTRAP (La paleta de la imagen) */
+$font-family-base: 'Plus Jakarta Sans', sans-serif;
+
+// Colores del tema oscuro
+$body-bg: #111c2d;
+$body-color: #e2e8f0; // Texto principal
+$text-muted: #8c98a4; // Texto secundario
+
+// Colores de componentes (Cards)
+$card-bg: #1e293b;
+$card-border-width: 0;
+$card-border-radius: 1rem; // Esquinas bien redondeadas (16px)
+$card-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+// Acentos Vibrantes
+$primary: #0d6efd; // El azul brillante de los botones
+$success: #13deb9; // Verde cyan para gráficas
+$danger: #fa896b;  // Rojo/Rosa suave
+$warning: #ffb822;
+
+// Botones más redondeados
+$btn-border-radius: 0.5rem;
+$btn-padding-y: 0.5rem;
+$btn-padding-x: 1.25rem;
+
+/* 3. IMPORTAR BOOTSTRAP (Después de declarar nuestras variables) */
+@import "../node_modules/bootstrap/scss/bootstrap";
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons.css";
+
+/* 4. REGLAS GLOBALES EXTRA */
+html, body {
+  height: 100%;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Un ajuste para que los enlaces no tengan subrayado feo por defecto
+a {
+  text-decoration: none;
+}
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';
+
+/* ==========================================================================
+   Corrección Global para Selectores en Tema Oscuro
+   ========================================================================== */
+select.form-select {
+  // Asegura que al desplegarse, las opciones tengan fondo oscuro
+  option {
+    background-color: #1e1e2d; /* Usa el tono oscuro de tus tarjetas */
+    color: #ffffff;
+    padding: 10px; // Mejora la legibilidad del espaciado interno
+  }
+
+  // Opcional: Cambia el color cuando el usuario pasa el cursor (hover)
+  // Nota: El hover nativo en options no funciona en todos los navegadores,
+  // pero mejora la experiencia en Firefox y algunos navegadores webkit.
+  option:hover, option:focus, option:active, option:checked {
+    background: linear-gradient(#0d6efd, #0d6efd); 
+    background-color: #0d6efd !important; // Color primary de Bootstrap
+    color: #ffffff !important;
+  }
+}

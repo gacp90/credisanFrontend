@@ -1,0 +1,114 @@
+<!-- Cabecera -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="text-white fw-bold mb-1">Mis Empresas</h4>
+    <p class="text-muted small mb-0">Gestiona los negocios donde participas</p>
+  </div>
+  <!-- Cambio clave: usamos (click) en lugar de data-bs-target -->
+  <button class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" (click)="abrirModalNueva(modalEmpresa)">
+    <i class="bi bi-plus-lg"></i>
+    <span class="d-none d-md-inline">Nueva Empresa</span>
+  </button>
+</div>
+
+<!-- Estados de Carga y Vacío (Se mantienen igual) -->
+<div *ngIf="isLoading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status"></div>
+</div>
+
+<div *ngIf="!isLoading && empresas.length === 0" class="text-center py-5 bg-dark rounded-4" style="background-color: var(--bs-card-bg) !important;">
+  <i class="bi bi-buildings text-muted" style="font-size: 3rem;"></i>
+  <h5 class="text-white fw-medium mt-3">No tienes empresas registradas</h5>
+  <p class="text-muted small">Crea tu primera empresa para comenzar a gestionar Credisanes.</p>
+</div>
+
+<!-- Cuadrícula de Empresas (Se mantiene igual) -->
+<div class="row g-4" *ngIf="!isLoading && empresas.length > 0">
+  <div class="col-12 col-md-6 col-lg-4" *ngFor="let emp of empresas">
+    <div class="card border-0 shadow-sm h-100" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="bg-primary bg-opacity-25 rounded p-2 d-flex align-items-center justify-content-center text-primary">
+                <i class="bi bi-building fs-4"></i>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-pill" [ngClass]="emp.status === 'ACTIVE' ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'">
+                {{ emp.status === 'ACTIVE' ? 'Activa' : 'Suspendida' }}
+                </span>
+
+                <!-- Botones de Acción con ng-bootstrap -->
+                <div ngbDropdown placement="bottom-end" class="d-inline-block">
+                
+                <!-- El botón usa ngbDropdownToggle -->
+                <button class="btn btn-sm btn-link text-muted p-0 shadow-none" ngbDropdownToggle>
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                
+                <!-- El menú usa ngbDropdownMenu y los items ngbDropdownItem -->
+                <div ngbDropdownMenu class="dropdown-menu-dark shadow-sm border-secondary border-opacity-25">
+                    <button ngbDropdownItem (click)="abrirModalEditar(modalEmpresa, emp)">
+                    <i class="bi bi-pencil me-2"></i> Editar
+                    </button>
+                    
+                    <div class="dropdown-divider border-secondary"></div>
+                    
+                    <button ngbDropdownItem [ngClass]="emp.status === 'ACTIVE' ? 'text-danger' : 'text-success'" (click)="cambiarEstado(emp)">
+                    <i class="bi me-2" [ngClass]="emp.status === 'ACTIVE' ? 'bi-pause-circle' : 'bi-play-circle'"></i>
+                    {{ emp.status === 'ACTIVE' ? 'Suspender' : 'Reactivar' }}
+                    </button>
+                </div>
+                
+                </div>
+            </div>
+            </div>
+        <h5 class="text-white fw-bold mb-1">{{ emp.name }}</h5>
+        <p class="text-muted small mb-3">RIF: {{ emp.rif }}</p>
+        
+        <div class="mt-auto pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Tu rol: <strong class="text-white">{{ emp.role }}</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estructura de Modal para ng-bootstrap -->
+<ng-template #modalEmpresa let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4">
+      <h5 class="modal-title text-white fw-bold">{{ editingTenantId ? 'Editar Empresa' : 'Registrar Empresa' }}</h5>
+      <button type="button" class="btn-close btn-close-white shadow-none" aria-label="Close" (click)="modal.dismiss()"></button>
+    </div>
+    
+    <div class="modal-body p-4">
+      <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()">
+        
+        <div class="mb-3">
+          <label class="form-label text-white small fw-medium">Nombre de la Empresa</label>
+          <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" formControlName="name" placeholder="Ej. Inversiones Sanes">
+          <div class="text-danger small mt-1" *ngIf="f['name'].invalid && f['name'].touched">El nombre es obligatorio.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-white small fw-medium">RIF / Documento Fiscal</label>
+          <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" formControlName="rif" placeholder="Ej. J-123456789">
+          <div class="text-danger small mt-1" *ngIf="f['rif'].invalid && f['rif'].touched">El documento fiscal es obligatorio.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-white small fw-medium">Dirección (Opcional)</label>
+          <textarea class="form-control bg-dark text-white border-secondary shadow-none" formControlName="address" rows="2" placeholder="Ubicación principal"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-secondary text-white border-opacity-25 shadow-none" (click)="modal.dismiss()">Cancelar</button>
+          <button type="submit" class="btn btn-primary d-flex align-items-center gap-2" [disabled]="isSaving">
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm"></span>
+            {{ isSaving ? 'Guardando...' : (editingTenantId ? 'Guardar Cambios' : 'Crear Empresa') }}
+            </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</ng-template>

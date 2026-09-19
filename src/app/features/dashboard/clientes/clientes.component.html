@@ -1,0 +1,324 @@
+<!-- 1. Cabecera -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h4 class="text-white fw-bold mb-1">Directorio de Clientes</h4>
+    <p class="text-muted small mb-0">Gestiona los participantes de tus Sanes</p>
+  </div>
+
+  <button class="btn btn-success d-flex align-items-center gap-2 shadow-sm" (click)="abrirModalEnvioMasivo(modalEnvioMasivo)">
+    <i class="bi bi-whatsapp"></i> 
+    <span class="d-none d-md-inline">Enviar Masivo a la Lista ({{ clients.length }})</span>
+  </button>
+
+  <button class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm border-opacity-50 text-white" 
+        (click)="abrirModalExcel(modalImportarExcel)">
+    <i class="bi bi-file-earmark-excel-fill text-success"></i> Importar Excel
+  </button>
+  <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2 shadow-sm" (click)="abrirModalNueva(modalCliente)">
+    <i class="bi bi-plus-lg"></i>
+    <span>Nuevo Cliente</span>
+  </button>
+</div>
+
+<!-- 2. Tarjeta Principal -->
+<div class="card border-0 shadow" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+  <div class="card-body p-4">
+    
+    <!-- 3. Barra de Herramientas (Filtros y Búsqueda) -->
+    <div class="row gx-3 gy-2 mb-4 align-items-center">
+      
+      <!-- Buscador -->
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text border-0 text-muted" style="background-color: rgba(255,255,255,0.05);"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control border-0 text-white shadow-none" 
+                 placeholder="Buscar por nombre, cédula o teléfono..." 
+                 (input)="onSearchChange($event)"
+                 style="background-color: rgba(255,255,255,0.05);">
+        </div>
+      </div>
+      
+      <!-- Espaciador flexible -->
+      <div class="col d-none d-md-block"></div>
+
+      <!-- Filtro: Ordenar por -->
+      <div class="col-6 col-md-auto">
+        <select class="form-select form-select-sm border-0 text-white shadow-none" 
+                [(ngModel)]="filters.sortBy" (change)="onFilterChange()"
+                style="background-color: rgba(255,255,255,0.05); cursor: pointer;">
+          <option value="newest">Últimos creados</option>
+          <option value="oldest">Primeros creados</option>
+          <option value="asc">Nombre (A-Z)</option>
+          <option value="desc">Nombre (Z-A)</option>
+        </select>
+      </div>
+
+      <!-- Filtro: Cantidad a mostrar -->
+      <div class="col-6 col-md-auto">
+        <select class="form-select form-select-sm border-0 text-white shadow-none" 
+                [(ngModel)]="filters.limit" (change)="onFilterChange()"
+                style="background-color: rgba(255,255,255,0.05); cursor: pointer;">
+          <option [ngValue]="10">10 registros</option>
+          <option [ngValue]="25">25 registros</option>
+          <option [ngValue]="50">50 registros</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 4. Estados de Carga y Vacío -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-3 small">Cargando directorio...</p>
+    </div>
+
+    <div *ngIf="!isLoading && clients.length === 0" class="text-center py-5">
+      <div class="bg-dark rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+        <i class="bi bi-people text-muted fs-1"></i>
+      </div>
+      <h5 class="text-white fw-medium">No hay clientes registrados</h5>
+      <p class="text-muted small">Agrega tu primer cliente para comenzar a asignarle Sanes.</p>
+    </div>
+
+    <!-- 5. Tabla de Datos -->
+    <div *ngIf="!isLoading && clients.length > 0" class="table-responsive" style="margin: 0 -1.5rem;">
+      <table class="table table-borderless text-white mb-0 align-middle">
+        <thead class="border-bottom border-secondary border-opacity-25">
+          <tr>
+            <th class="text-muted fw-medium small text-uppercase py-3 px-4">Cliente</th>
+            <th class="text-muted fw-medium small text-uppercase py-3 px-4">Documento</th>
+            <th class="text-muted fw-medium small text-uppercase py-3 px-4 d-none d-md-table-cell">Teléfono</th>
+            <th class="text-muted fw-medium small text-uppercase py-3 px-4 text-center">Estado</th>
+            <th class="text-muted fw-medium small text-uppercase py-3 px-4 text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of clients" class="border-bottom border-secondary border-opacity-10" style="transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.02)'" onmouseout="this.style.backgroundColor='transparent'">
+            <td class="py-3 px-4">
+              <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-25 rounded-circle d-flex justify-content-center align-items-center text-primary fw-bold" style="width: 40px; height: 40px;">
+                  <!-- Cambiado a userId -->
+                  {{ client.userId?.fullName?.charAt(0) | uppercase }}
+                </div>
+                <div>
+                  <h6 class="mb-0 fw-medium text-white">{{ client.userId?.fullName }}</h6>
+                  <small class="text-muted">{{ client.userId?.email }}</small>
+                </div>
+              </div>
+            </td>
+            <!-- Cambiado a userId -->
+            <td class="py-3 px-4 text-white">{{ client.userId?.cedula || 'N/A' }}</td>
+            <td class="py-3 px-4 text-muted d-none d-md-table-cell">{{ client.userId?.phoneNumber || 'N/A' }}</td>
+            <td class="py-3 px-4 text-center">
+              <span class="badge rounded-pill px-3 py-2 fw-medium" [ngClass]="client.isActive ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'">
+                {{ client.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-end">
+              <!-- Botón Editar -->
+              <button class="btn btn-sm btn-link text-muted p-0 me-3 shadow-none" title="Editar" (click)="abrirModalEditar(modalCliente, client)">
+                <i class="bi bi-pencil-square fs-5 hover-primary" style="transition: color 0.2s;" onmouseover="this.classList.add('text-primary')" onmouseout="this.classList.remove('text-primary')"></i>
+              </button>
+              <!-- Botón Cambiar Estado -->
+              <button class="btn btn-sm btn-link p-0 shadow-none" [title]="client.isActive ? 'Desactivar' : 'Reactivar'" [ngClass]="client.isActive ? 'text-muted' : 'text-danger'" (click)="cambiarEstado(client)">
+                <i class="bi fs-5 hover-danger" [ngClass]="client.isActive ? 'bi-trash' : 'bi-arrow-counterclockwise'" style="transition: color 0.2s;" onmouseover="this.classList.add('text-danger')" onmouseout="this.classList.remove('text-danger')"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+  
+  <!-- 6. Paginación (Footer de la Tarjeta) -->
+  <div *ngIf="!isLoading && clients.length > 0" class="card-footer bg-transparent border-top border-secondary border-opacity-25 p-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+    
+    <!-- Indicador de registros dinámico -->
+    <span class="text-muted small">
+      Mostrando <strong class="text-white">{{ (filters.page - 1) * filters.limit + 1 }}</strong> 
+      - <strong class="text-white">{{ (filters.page * filters.limit) > totalItems ? totalItems : (filters.page * filters.limit) }}</strong> 
+      de <strong class="text-white">{{ totalItems }}</strong> clientes
+    </span>
+    
+    <!-- Controles Reales -->
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary text-white d-flex align-items-center gap-1 border-opacity-25" 
+              [disabled]="filters.page === 1" 
+              (click)="cambiarPagina(-1)">
+        <i class="bi bi-chevron-left small"></i> Anterior
+      </button>
+      
+      <button class="btn btn-sm btn-outline-secondary text-white d-flex align-items-center gap-1 border-opacity-25" 
+              [disabled]="(filters.page * filters.limit) >= totalItems" 
+              (click)="cambiarPagina(1)">
+        Siguiente <i class="bi bi-chevron-right small"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Modal de Bootstrap para Crear/Editar Cliente -->
+<!-- Modal de ng-bootstrap -->
+<ng-template #modalCliente let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4">
+      <!-- Título Dinámico -->
+      <h5 class="modal-title text-white fw-bold">{{ clienteSeleccionado ? 'Editar Cliente' : 'Registrar Nuevo Cliente' }}</h5>
+      <button type="button" class="btn-close btn-close-white shadow-none" aria-label="Close" (click)="modal.dismiss()"></button>
+    </div>
+    
+    <div class="modal-body p-4">
+      <!-- Pasamos la variable clienteSeleccionado al hijo -->
+      <app-cliente-form 
+        [clienteData]="clienteSeleccionado"
+        (onSaved)="handleFormSaved()" 
+        (onCancel)="handleFormCanceled()">
+      </app-cliente-form>
+    </div>
+  </div>
+</ng-template>
+
+<!-- MODAL: ENVÍO MASIVO WHATSAPP -->
+<ng-template #modalEnvioMasivo let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4 bg-success bg-opacity-10">
+      <h5 class="modal-title text-success fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-whatsapp"></i> Campaña de WhatsApp
+      </h5>
+      <button type="button" class="btn-close btn-close-white shadow-none" (click)="modal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+      
+      <div class="alert bg-primary bg-opacity-10 border-primary border-opacity-25 text-info d-flex align-items-center gap-2 p-3 rounded-3 mb-4">
+        <i class="bi bi-info-circle-fill fs-5"></i>
+        <span class="small">Se enviará un mensaje directo a los <strong>{{ clients.length }}</strong> clientes que tienes filtrados actualmente en la tabla.</span>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label text-white small fw-bold mb-2">Selecciona una plantilla (Aprobada por Meta)</label>
+        
+        <div *ngIf="isLoadingTemplates" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-success mb-2"></div>
+          <div class="small text-muted">Cargando plantillas...</div>
+        </div>
+
+        <select *ngIf="!isLoadingTemplates" class="form-select bg-dark text-white border-secondary shadow-none" [(ngModel)]="templateSelectedApi">
+          <option [ngValue]="null">-- Elegir plantilla --</option>
+          <option *ngFor="let t of wpTemplates" [ngValue]="t">{{ t.name }} ({{ t.language }})</option>
+        </select>
+      </div>
+
+      <!-- VISTA PREVIA DINÁMICA -->
+      <div *ngIf="templateSelectedApi" class="mt-2 fade-in">
+        <label class="text-muted small fw-bold mb-2">VISTA PREVIA DEL MENSAJE:</label>
+        
+        <div class="p-4 rounded-4 shadow-lg border border-secondary border-opacity-25" style="background-color: #efeae2;">
+          <div class="mb-2" style="background: white; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            <div style="padding: 10px;">
+              
+              <div *ngIf="templateSelectedApi.headerType === 'IMAGE'" class="mb-2 bg-light rounded d-flex align-items-center justify-content-center overflow-hidden" style="height: 150px;">
+                <img [src]="templateSelectedApi.headerContent" class="w-100 h-100" style="object-fit: cover;">
+              </div>
+              
+              <div *ngIf="templateSelectedApi.headerType === 'VIDEO'" class="mb-2 bg-dark rounded d-flex align-items-center justify-content-center position-relative overflow-hidden" style="height: 150px;">
+                <video [src]="templateSelectedApi.headerContent" class="w-100 h-100" style="object-fit: cover;" controls controlsList="nodownload"></video>
+              </div>
+
+              <strong *ngIf="templateSelectedApi.headerType === 'TEXT' && (templateSelectedApi.headerContent || templateSelectedApi.headerText)" class="d-block mb-2 text-dark" style="font-size: 1.05em;">
+                {{ templateSelectedApi.headerContent || templateSelectedApi.headerText }}
+              </strong>
+
+              <p class="mb-1 text-dark" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.95rem;">
+                {{ templateSelectedApi.bodyText }}
+              </p>
+
+              <span *ngIf="templateSelectedApi.footerText" class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                {{ templateSelectedApi.footerText }}
+              </span>
+
+              <div class="text-end text-muted mt-1" style="font-size: 0.65rem;">
+                10:42 AM <i class="bi bi-check2-all text-info fs-6"></i>
+              </div>
+            </div>
+
+            <div *ngIf="templateSelectedApi.buttons?.length > 0" class="d-flex flex-column w-100 border-top" style="border-color: #f0f0f0 !important;">
+              <div *ngFor="let btn of templateSelectedApi.buttons" class="text-center py-2 text-primary fw-medium" style="border-bottom: 1px solid #f0f0f0;">
+                <i class="bi bi-reply-fill me-1" style="font-size: 1rem; vertical-align: middle;"></i> 
+                {{ btn.text ? btn.text : btn }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="text-muted small mt-2 d-flex gap-2">
+          <i class="bi bi-magic text-info"></i> Las variables dinámicas se reemplazarán automáticamente por el nombre de cada cliente.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer border-top border-secondary border-opacity-25 bg-dark rounded-bottom-4">
+      <button type="button" class="btn btn-outline-secondary text-white border-opacity-25" (click)="modal.dismiss()" [disabled]="isSending">Cancelar</button>
+      <button type="button" class="btn btn-success d-flex align-items-center gap-2 fw-bold px-4" 
+              (click)="iniciarEnvioMasivo()" [disabled]="!templateSelectedApi || isSending">
+        <span *ngIf="isSending" class="spinner-border spinner-border-sm"></span>
+        <i *ngIf="!isSending" class="bi bi-send-fill"></i>
+        {{ isSending ? 'Procesando Envíos...' : 'Iniciar Campaña' }}
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- MODAL: IMPORTAR CLIENTES EXCEL -->
+<ng-template #modalImportarExcel let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4 bg-success bg-opacity-10">
+      <h5 class="modal-title text-success fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-file-earmark-excel-fill"></i> Importación Masiva
+      </h5>
+      <button type="button" class="btn-close btn-close-white shadow-none" (click)="modal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body p-4">
+      
+      <div class="alert bg-primary bg-opacity-10 border-primary border-opacity-25 p-3 rounded-3 mb-4 d-flex align-items-start gap-3">
+        <i class="bi bi-info-circle-fill text-info fs-4 mt-1"></i>
+        <div>
+          <h6 class="text-info fw-bold mb-1">¿Cómo importar correctamente?</h6>
+          <p class="small text-white mb-2">Para evitar errores, descarga nuestra plantilla base, llénala con los datos de tus clientes sin modificar los títulos de las columnas, y súbela aquí.</p>
+          <button class="btn btn-sm btn-outline-info border-opacity-50 text-info shadow-none fw-bold" (click)="descargarPlantilla()">
+            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Descargar Plantilla de Ejemplo
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label text-white small fw-bold mb-2">Sube tu archivo diligenciado (.xlsx, .xls)</label>
+        
+        <div class="border border-secondary border-opacity-50 border-dashed rounded-4 p-4 text-center bg-dark"
+             style="border-style: dashed !important; border-width: 2px !important;">
+          <i class="bi bi-cloud-upload text-muted display-4 mb-3"></i>
+          
+          <input type="file" id="excelFile" class="form-control bg-dark text-white border-secondary shadow-none d-block mx-auto mb-3" 
+                 accept=".xlsx, .xls, .csv" (change)="onFileChange($event)" [disabled]="isImporting" style="max-width: 350px;">
+          
+          <p *ngIf="clientesAImportar.length > 0" class="text-success small fw-bold mb-0">
+            <i class="bi bi-check-circle-fill me-1"></i> ¡Archivo leído! {{ clientesAImportar.length }} clientes detectados.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer border-top border-secondary border-opacity-25 bg-dark rounded-bottom-4">
+      <button type="button" class="btn btn-outline-secondary text-white border-opacity-25" (click)="modal.dismiss()" [disabled]="isImporting">Cancelar</button>
+      <button type="button" class="btn btn-success d-flex align-items-center gap-2 fw-bold px-4" 
+              (click)="procesarImportacion()" [disabled]="clientesAImportar.length === 0 || isImporting">
+        <span *ngIf="isImporting" class="spinner-border spinner-border-sm"></span>
+        <i *ngIf="!isImporting" class="bi bi-play-fill"></i>
+        {{ isImporting ? 'Guardando en Base de Datos...' : 'Iniciar Importación' }}
+      </button>
+    </div>
+  </div>
+</ng-template>

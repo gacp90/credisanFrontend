@@ -1,0 +1,183 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="text-white fw-bold mb-1">Verificación de Pagos</h4>
+    <p class="text-muted small mb-0">Confirma o rechaza los reportes de pago de los clientes</p>
+  </div>
+</div>
+
+<!-- BARRA DE FILTROS -->
+<div class="card border-0 shadow-sm mb-4" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+  <div class="card-body p-3">
+    <div class="row g-3 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small mb-1">Estado</label>
+        <select class="form-select bg-dark text-white border-secondary shadow-none" [(ngModel)]="filters.status" (change)="applyFilters()">
+          <option value="">Todos</option>
+          <option value="PENDING">Pendientes por confirmar</option>
+          <option value="CONFIRMED">Confirmados</option>
+          <option value="CANCELLED">Rechazados</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small mb-1">Método de Pago</label>
+        <select class="form-select bg-dark text-white border-secondary shadow-none" [(ngModel)]="filters.paymentMethodId" (change)="applyFilters()">
+          <option value="">Todos los métodos</option>
+          <option *ngFor="let method of paymentMethods" [value]="method._id">{{ method.name }} ({{ method.currency }})</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <label class="form-label text-muted small mb-1">Desde</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary shadow-none" [(ngModel)]="filters.startDate" (change)="applyFilters()">
+      </div>
+      <div class="col-12 col-md-2">
+        <label class="form-label text-muted small mb-1">Hasta</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary shadow-none" [(ngModel)]="filters.endDate" (change)="applyFilters()">
+      </div>
+      <div class="col-12 col-md-2 text-end">
+        <button class="btn btn-outline-secondary w-100 border-opacity-25" (click)="clearFilters()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CUADROS INFORMATIVOS (MÉTRICAS DINÁMICAS) -->
+<div class="row g-3 mb-4" *ngIf="metrics.length > 0">
+  <div class="col-12 col-md-4 col-lg-3" *ngFor="let metric of metrics">
+    <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-3">
+      <div class="bg-primary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 45px; height: 45px;">
+        <i class="bi bi-wallet2 fs-5"></i>
+      </div>
+      <div>
+        <h6 class="text-white fw-bold mb-0 lh-1">{{ metric.totalPaid | number:'1.2-2' }} <span class="small fw-normal text-muted">{{ metric.currency }}</span></h6>
+        <small class="text-muted" style="font-size: 0.7rem;">{{ metric.name }} ({{ metric.count }} txs)</small>
+        <div class="text-success small fw-medium" style="font-size: 0.7rem;">≈ ${{ metric.totalBase | number:'1.2-2' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div *ngIf="isLoading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status"></div>
+</div>
+
+<!-- TABLA DE TRANSACCIONES -->
+<div class="card border-0 shadow-sm" *ngIf="!isLoading" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+  <div class="card-body p-0 table-responsive">
+    
+    <div *ngIf="transactions.length === 0" class="text-center py-5">
+      <p class="text-muted mb-0">No se encontraron transacciones con estos filtros.</p>
+    </div>
+
+    <table class="table table-borderless text-white mb-0 align-middle" *ngIf="transactions.length > 0">
+      <thead class="border-bottom border-secondary border-opacity-25 bg-dark">
+        <tr>
+          <th class="text-muted fw-medium small py-3 ps-4">Fecha</th>
+          <th class="text-muted fw-medium small py-3">Cliente / San</th>
+          <th class="text-muted fw-medium small py-3">Referencia & Método</th>
+          <th class="text-muted fw-medium small py-3 text-end">Monto Base</th>
+          <th class="text-muted fw-medium small py-3 text-end">Monto Pagado</th>
+          <th class="text-muted fw-medium small py-3 text-center pe-4">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tx of transactions" class="border-bottom border-secondary border-opacity-10">
+          <td class="py-3 ps-4">
+            <span class="d-block text-white small">{{ tx.createdAt | date:'dd/MM/yyyy' }}</span>
+            <span class="text-muted" style="font-size: 0.7rem;">{{ tx.createdAt | date:'shortTime' }}</span>
+          </td>
+          
+          <td class="py-3">
+            <h6 class="mb-0 fw-medium text-white fs-6">{{ tx.tenantClientId?.userId?.fullName || 'Cliente' }}</h6>
+            <!-- Información del San y Ronda -->
+            <small class="text-muted d-block">
+              <i class="bi bi-piggy-bank"></i> {{ tx.installmentId?.credisanId?.name || 'San Desconocido' }}
+            </small>
+          </td>
+
+          <td class="py-3">
+            <span class="d-block text-white font-monospace small bg-dark p-1 rounded text-center mb-1 border border-secondary border-opacity-25" style="max-width: 120px;">
+              {{ tx.reference }}
+            </span>
+            <small class="text-muted">{{ tx.paymentMethodId?.name }}</small>
+          </td>
+
+          <td class="py-3 text-end">
+            <strong class="text-success">${{ tx.baseAmount | number:'1.2-2' }}</strong>
+          </td>
+
+          <td class="py-3 text-end">
+            <strong class="text-white">{{ tx.paidAmount | number:'1.2-2' }}</strong>
+            <small class="text-muted ms-1">{{ tx.paymentMethodId?.currency }}</small>
+            <div class="text-muted mt-1" style="font-size: 0.65rem;">Tasa: {{ tx.exchangeRate }}</div>
+          </td>
+
+          <td class="py-3 pe-4 text-center">
+            
+            <!-- Acciones si está pendiente -->
+            <div *ngIf="tx.status === 'PENDING'" class="d-flex gap-2 justify-content-center">
+              <button class="btn btn-sm btn-success px-3 shadow-sm" title="Aprobar Pago" (click)="abrirConfirmar(modalConfirmar, tx)">
+                <i class="bi bi-check-lg"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger shadow-sm" title="Rechazar Pago" (click)="abrirRechazar(modalRechazar, tx)">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <!-- Etiquetas si ya fue procesado -->
+            <span *ngIf="tx.status === 'CONFIRMED'" class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i> Aprobado</span>
+            
+            <div *ngIf="tx.status === 'CANCELLED'">
+              <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i> Rechazado</span>
+              <div class="text-muted mt-1" style="font-size: 0.65rem;" [title]="tx.rejectionReason">Ver motivo</div>
+            </div>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Confirmar -->
+<ng-template #modalConfirmar let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-body p-4 text-center">
+      <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+        <i class="bi bi-check-lg fs-2"></i>
+      </div>
+      <h5 class="text-white fw-bold mb-2">¿Confirmar recepción de pago?</h5>
+      <p class="text-muted small mb-4">Verifica en tu cuenta bancaria ({{ selectedTx?.paymentMethodId?.name }}) que la referencia <strong>{{ selectedTx?.reference }}</strong> por <strong>{{ selectedTx?.paidAmount }} {{ selectedTx?.paymentMethodId?.currency }}</strong> sea correcta.</p>
+      
+      <div class="d-flex justify-content-center gap-2">
+        <button type="button" class="btn btn-outline-secondary text-white border-opacity-25" (click)="modal.dismiss()" [disabled]="isProcessing">Cancelar</button>
+        <button type="button" class="btn btn-success px-4" (click)="confirmarPago()" [disabled]="isProcessing">
+          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2"></span>Sí, Confirmar Pago
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Modal Rechazar -->
+<ng-template #modalRechazar let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4">
+      <h5 class="modal-title text-danger fw-bold"><i class="bi bi-exclamation-triangle me-2"></i> Rechazar Pago</h5>
+      <button type="button" class="btn-close btn-close-white shadow-none" (click)="modal.dismiss()"></button>
+    </div>
+    <div class="modal-body p-4">
+      <p class="text-white small mb-3">La referencia <strong>{{ selectedTx?.reference }}</strong> será anulada y la cuota volverá a quedar pendiente de pago.</p>
+      
+      <label class="form-label text-muted small fw-medium">Motivo del rechazo (Obligatorio)</label>
+      <textarea class="form-control bg-dark text-white border-secondary mb-4" rows="3" [(ngModel)]="rejectionReason" placeholder="Ej: No se refleja en cuenta, referencia duplicada..."></textarea>
+      
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary text-white border-opacity-25" (click)="modal.dismiss()" [disabled]="isProcessing">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="rechazarPago()" [disabled]="!rejectionReason || isProcessing">
+          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2"></span>Rechazar y Anular
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

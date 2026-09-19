@@ -1,0 +1,50 @@
+<div class="card p-4 shadow-lg border-0" style="width: 100%; max-width: 400px;">
+  <div class="text-center mb-4">
+    <!-- Aquí iría tu logo. Por ahora un texto elegante -->
+    <h3 class="fw-bold text-white mb-1">Credisanes</h3>
+    <p class="text-muted small">Panel de Administración</p>
+    <!-- Alerta de Error -->
+    <div *ngIf="errorMessage" class="alert alert-danger py-2 small fw-medium text-center">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    
+    <!-- Input Correo -->
+    <div class="mb-3">
+      <label class="form-label text-white small fw-medium">Correo Electrónico</label>
+      <input 
+        type="email" 
+        class="form-control form-control-lg bg-dark text-white border-secondary" 
+        formControlName="email" 
+        placeholder="ejemplo@correo.com"
+        [ngClass]="{'is-invalid': f['email'].invalid && f['email'].touched}"
+      >
+      <div class="invalid-feedback" *ngIf="f['email'].errors?.['required']">El correo es obligatorio.</div>
+      <div class="invalid-feedback" *ngIf="f['email'].errors?.['email']">Debe ser un correo válido.</div>
+    </div>
+
+    <!-- Input Contraseña -->
+    <div class="mb-4">
+      <label class="form-label text-white small fw-medium">Contraseña</label>
+      <input 
+        type="password" 
+        class="form-control form-control-lg bg-dark text-white border-secondary" 
+        formControlName="password" 
+        placeholder="••••••••"
+        [ngClass]="{'is-invalid': f['password'].invalid && f['password'].touched}"
+      >
+      <div class="invalid-feedback" *ngIf="f['password'].errors?.['required']">La contraseña es obligatoria.</div>
+      <div class="invalid-feedback" *ngIf="f['password'].errors?.['minlength']">Mínimo 6 caracteres.</div>
+    </div>
+
+    <!-- Botón Submit -->
+    <div class="d-grid">
+      <button type="submit" class="btn btn-primary btn-lg fw-bold" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ isLoading ? 'Iniciando...' : 'Iniciar Sesión' }}
+      </button>
+    </div>
+  </form>
+</div>

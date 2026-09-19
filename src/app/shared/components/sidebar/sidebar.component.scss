@@ -1,0 +1,51 @@
+// Lógica de estilos de los enlaces (se mantiene igual)
+.custom-nav-link {
+  color: var(--bs-gray-400);
+  transition: all 0.2s ease-in-out;
+  &:hover { color: #fff; background-color: rgba(255, 255, 255, 0.05); }
+  &.active {
+    color: #fff; background-color: var(--bs-primary);
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    i { text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+  }
+}
+
+// Lógica Responsiva del Contenedor
+.sidebar-container {
+  width: 260px;
+  height: 100vh;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1040;
+
+  // En pantallas de tablet/celular
+  @media (max-width: 991.98px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%); // Oculto por defecto
+    
+    &.show {
+      transform: translateX(0); // Se desliza hacia adentro
+    }
+  }
+}
+
+// Fondo oscuro detrás del menú en móviles
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1030;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+  }
+}

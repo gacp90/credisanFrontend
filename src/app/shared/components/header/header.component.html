@@ -1,0 +1,66 @@
+<header class="d-flex justify-content-between align-items-center px-4 shadow-sm border-bottom border-secondary border-opacity-25" style="background-color: var(--bs-card-bg); height: 70px;">
+  
+  <!-- Lado Izquierdo: Botón Hamburguesa y Logo Móvil -->
+  <div class="d-flex align-items-center gap-3">
+    <a class="text-white d-lg-none" style="cursor: pointer;" (click)="toggleSidebar()">
+      <i class="bi bi-list fs-2"></i>
+    </a>
+    <span class="text-white fw-bold fs-5 d-lg-none" style="letter-spacing: -0.5px;">CREDISANES</span>
+  </div>
+
+  <div *ngIf="empresas.length > 0" ngbDropdown placement="bottom-start" class="d-inline-block me-3">
+    <button class="btn btn-dark border-secondary border-opacity-25 d-flex align-items-center gap-2 shadow-none" ngbDropdownToggle>
+      <div class="bg-primary bg-opacity-25 text-primary rounded px-2 py-1 small fw-bold">
+        {{ activeTenantName | slice:0:1 | uppercase }}
+      </div>
+      <span class="text-white small fw-medium">{{ activeTenantName }}</span>
+    </button>
+    
+    <div ngbDropdownMenu class="dropdown-menu-dark shadow border-secondary border-opacity-25 mt-2">
+      <h6 class="dropdown-header text-muted small">Cambiar de Empresa</h6>
+      
+      <button *ngFor="let emp of empresas" ngbDropdownItem class="d-flex align-items-center gap-2 py-2" (click)="seleccionarEmpresa(emp)">
+        <i class="bi" [ngClass]="emp.name === activeTenantName ? 'bi-check-circle-fill text-success' : 'bi-building text-muted'"></i>
+        {{ emp.name }}
+      </button>
+      
+      <div class="dropdown-divider border-secondary"></div>
+      
+      <button ngbDropdownItem routerLink="/dashboard/empresas" class="text-primary py-2">
+        <i class="bi bi-gear me-2"></i> Administrar mis negocios
+      </button>
+    </div>
+  </div>
+
+  <!-- Lado Derecho: Menú de Usuario (Se mantiene igual) -->
+  <div class="dropdown position-relative">
+    <a class="d-flex align-items-center gap-2 text-decoration-none" style="cursor: pointer;" (click)="toggleUserMenu()">
+      <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
+        <i class="bi bi-person-fill text-white fs-5"></i>
+      </div>
+      <span class="d-none d-md-block text-white fw-medium">Administrador</span>
+      <i class="bi bi-chevron-down text-muted small ms-1"></i>
+    </a>
+    
+    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3 position-absolute end-0" 
+        [class.show]="isUserMenuOpen" 
+        style="background-color: var(--bs-body-bg); min-width: 200px; z-index: 1050;">
+      <li>
+        <a class="dropdown-item py-2 text-white d-flex align-items-center gap-3" routerLink="/dashboard/perfil" (click)="isUserMenuOpen = false">
+          <i class="bi bi-person-circle fs-5 text-muted"></i> Mi Perfil
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item py-2 text-white d-flex align-items-center gap-3" routerLink="/dashboard/empresas" (click)="isUserMenuOpen = false">
+          <i class="bi bi-building fs-5 text-muted"></i> Mis Empresas
+        </a>
+      </li>
+      <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
+      <li>
+        <button class="dropdown-item py-2 text-danger d-flex align-items-center gap-3" (click)="logout()">
+          <i class="bi bi-box-arrow-right fs-5"></i> Cerrar Sesión
+        </button>
+      </li>
+    </ul>
+  </div>
+</header>

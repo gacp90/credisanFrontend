@@ -1,0 +1,247 @@
+<!-- PANTALLA NO CONECTADA -->
+<div *ngIf="!hasApiKey" class="container-fluid py-5 fade-in">
+  <div class="row justify-content-center">
+    <div class="col-xl-9">
+      <div class="card shadow-lg border-0 rounded-4" style="background-color: var(--bs-card-bg);">
+        <div class="card-body p-5">
+          
+          <div class="text-center mb-5">
+            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+              <i class="bi bi-whatsapp text-success display-4"></i>
+            </div>
+            <h1 class="fw-bolder text-white mb-3">Conecta tu Empresa a WhatsApp</h1>
+            <p class="fs-5 text-muted mx-auto" style="max-width: 600px;">
+              Automatiza cobranzas, recordatorios y notificaciones oficiales conectando tu línea a Credisanes.
+            </p>
+          </div>
+
+          <div class="row g-4 mb-5 text-center">
+            <div class="col-md-4">
+              <div class="h-100 p-4 border border-secondary border-opacity-25 rounded-4 bg-dark">
+                <i class="bi bi-cash-stack text-success display-6 mb-3"></i>
+                <h6 class="fw-bold text-white mb-2">Cobranza Automática</h6>
+                <p class="small text-muted mb-0">Envía recordatorios de pagos y notificaciones de deudas de los Sanes.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="h-100 p-4 border border-secondary border-opacity-25 rounded-4 bg-dark">
+                <i class="bi bi-broadcast text-info display-6 mb-3"></i>
+                <h6 class="fw-bold text-white mb-2">Campañas Masivas</h6>
+                <p class="small text-muted mb-0">Comunica nuevos ciclos, sorteos y anuncios a toda tu cartera.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="h-100 p-4 border border-secondary border-opacity-25 rounded-4 bg-dark">
+                <i class="bi bi-robot text-warning display-6 mb-3"></i>
+                <h6 class="fw-bold text-white mb-2">Respuesta Inmediata</h6>
+                <p class="small text-muted mb-0">Informa resultados del sorteo en tiempo real a los ganadores.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center bg-dark p-4 rounded-4 border border-secondary border-opacity-25">
+            <i class="bi bi-shield-check text-muted me-2 fs-5"></i>
+            <span *ngIf="esDominioOficial" class="small text-muted">Proceso rápido y seguro guiado por Meta (Facebook).</span>
+            <span *ngIf="!esDominioOficial" class="small text-muted">La integración en dominios personalizados requiere asistencia.</span>
+            
+            <div class="mt-4">
+              <button *ngIf="esDominioOficial" class="btn btn-success btn-lg px-4 rounded-pill fw-bold" (click)="launchWhatsAppSignup()">
+                <i class="bi bi-whatsapp me-2"></i> Comenzar Integración Segura
+              </button>
+
+              <button *ngIf="!esDominioOficial" class="btn btn-outline-success btn-lg px-4 rounded-pill fw-bold shadow-sm" (click)="contactarSoporte()">
+                <i class="bi bi-headset me-2"></i> Solicitar Conexión a Soporte
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANTALLA CONECTADA (SALDO Y ESTADO) -->
+<div *ngIf="hasApiKey && channelHealth" class="container-fluid py-4 fade-in">
+  
+  <div class="row g-4 mb-4">
+    <!-- INFO LÍNEA -->
+    <div class="col-md-6">
+      <div class="card h-100 p-4 border-0 shadow-sm" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+        <div class="d-flex align-items-center mb-4">
+          <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 70px; height: 70px;">
+            <i class="bi bi-whatsapp text-success fs-1"></i>
+          </div>
+          <div>
+            <span class="text-uppercase text-muted fw-bold small">Línea Vinculada</span>
+            <h2 class="fw-bold mb-0 text-white">{{ channelHealth.telefono }}</h2>
+          </div>
+        </div>
+        
+        <div class="mt-auto d-flex justify-content-between align-items-center bg-dark p-3 rounded-3 border border-secondary border-opacity-25">
+          <span class="fw-semibold text-muted small">Estado de la conexión</span>
+          <span class="badge px-3 py-2 rounded-pill" 
+                [ngClass]="channelHealth.estadoLinea === 'CONNECTED' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'">
+            <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+            {{ channelHealth.estadoLinea === 'CONNECTED' ? 'Conectado' : 'Pendiente' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALDO -->
+    <div class="col-md-6">
+      <div class="card h-100 p-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border-radius: 1rem;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <span class="text-white text-uppercase fw-bold small opacity-75">Saldo Disponible (USD)</span>
+          <i class="bi bi-wallet2 text-white opacity-75 fs-3"></i>
+        </div>
+        
+        <div class="mb-4">
+          <span class="display-3 fw-bold text-white mb-0">{{ channelHealth.creditosRifari | number:'1.2-2' }}</span>
+        </div>
+
+        <button class="btn btn-light btn-lg text-primary fw-bold w-100 mt-auto rounded-pill shadow-sm" (click)="abrirModalRecarga()">
+          <i class="bi bi-plus-lg me-2"></i> Recargar Saldo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTADÍSTICAS LÍNEA -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 p-4 shadow-sm" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+        
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom border-secondary border-opacity-25 pb-3 mb-4 gap-3">
+          <div>
+            <h5 class="fw-bold text-white mb-1">Límites de Mensajería</h5>
+            <span class="text-muted small">Cantidad máxima de clientes nuevos contactables cada 24h.</span>
+          </div>
+          
+          <div class="d-flex align-items-center bg-dark px-3 py-2 rounded-pill border border-secondary border-opacity-25 gap-2">
+            <span class="small fw-bold text-muted me-2">Calidad de Línea:</span>
+            <i class="bi bi-circle-fill" 
+                 [ngClass]="{
+                  'text-success': channelHealth.calidad === 'GREEN',
+                  'text-warning': channelHealth.calidad === 'YELLOW',
+                  'text-danger': channelHealth.calidad === 'RED',
+                  'text-secondary': channelHealth.calidad === 'UNKNOWN'
+                 }">
+            </i>
+            <span class="small fw-bolder text-uppercase" 
+                  [ngClass]="{
+                    'text-success': channelHealth.calidad === 'GREEN',
+                    'text-warning': channelHealth.calidad === 'YELLOW',
+                    'text-danger': channelHealth.calidad === 'RED',
+                    'text-muted': channelHealth.calidad === 'UNKNOWN'
+                  }">
+              {{ channelHealth.calidad === 'UNKNOWN' ? 'Desconocida' : channelHealth.calidad }}
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-3">
+          <!-- Tiers -->
+          <div class="p-3 rounded-3 text-center border transition-all" style="flex: 1; min-width: 120px;"
+               [ngClass]="channelHealth.limiteDiario == '250' ? 'bg-primary bg-opacity-10 border-primary' : 'bg-dark border-secondary border-opacity-25'">
+            <h3 class="fw-bold mb-0" [ngClass]="channelHealth.limiteDiario == '250' ? 'text-primary' : 'text-muted'">250</h3>
+            <span class="small text-muted">msj / día</span>
+          </div>
+          <div class="p-3 rounded-3 text-center border transition-all" style="flex: 1; min-width: 120px;"
+               [ngClass]="channelHealth.limiteDiario == '1000' || channelHealth.limiteDiario == '1K' ? 'bg-primary bg-opacity-10 border-primary' : 'bg-dark border-secondary border-opacity-25'">
+            <h3 class="fw-bold mb-0" [ngClass]="channelHealth.limiteDiario == '1000' || channelHealth.limiteDiario == '1K' ? 'text-primary' : 'text-muted'">1K</h3>
+            <span class="small text-muted">msj / día</span>
+          </div>
+          <div class="p-3 rounded-3 text-center border transition-all" style="flex: 1; min-width: 120px;"
+               [ngClass]="channelHealth.limiteDiario == '10000' || channelHealth.limiteDiario == '10K' ? 'bg-primary bg-opacity-10 border-primary' : 'bg-dark border-secondary border-opacity-25'">
+            <h3 class="fw-bold mb-0" [ngClass]="channelHealth.limiteDiario == '10000' || channelHealth.limiteDiario == '10K' ? 'text-primary' : 'text-muted'">10K</h3>
+            <span class="small text-muted">msj / día</span>
+          </div>
+          <div class="p-3 rounded-3 text-center border transition-all" style="flex: 1; min-width: 120px;"
+               [ngClass]="channelHealth.limiteDiario == 'UNLIMITED' ? 'bg-primary bg-opacity-10 border-primary' : 'bg-dark border-secondary border-opacity-25'">
+            <h3 class="fw-bold mb-0" [ngClass]="channelHealth.limiteDiario == 'UNLIMITED' ? 'text-primary' : 'text-muted'">∞</h3>
+            <span class="small text-muted">Ilimitado</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE RECARGA DE SALDO (Estilo oscuro) -->
+<div class="modal-backdrop fade show" *ngIf="mostrarModalRecarga" style="background: rgba(0,0,0,0.7); position: fixed; top:0; left:0; width:100%; height:100%; z-index: 1040;"></div>
+
+<div class="modal fade show" *ngIf="mostrarModalRecarga" style="display: block; z-index: 1050;" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+        
+      <div class="modal-header border-bottom border-secondary border-opacity-25">
+        <h5 class="modal-title text-white fw-bold"><i class="bi bi-wallet2 text-primary me-2"></i> Recargar Saldo (USD)</h5>
+        <button type="button" class="btn-close btn-close-white shadow-none" (click)="cerrarModalRecarga()"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+
+        <p class="text-muted small text-center mb-2">Pago seguro garantizado por</p>
+        <div class="d-flex justify-content-center mb-4">
+            <!-- Si tienes el logo oscuro de spidi, úsalo -->
+            <img src="../../../assets/images/spidi.png" width="80" alt="Spidi">
+        </div>
+      
+        <div class="row g-4">
+          <!-- COLUMNA IZQUIERDA -->
+          <div class="col-md-6 border-end border-secondary border-opacity-25 pe-md-4">
+            <p class="text-white small fw-medium mb-3">Selecciona el monto a recargar (Mínimo $5 USD).</p>
+            
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              <button class="btn fw-bold px-3 py-2" [ngClass]="cantidadARecargar === 10 ? 'btn-primary' : 'btn-outline-secondary text-white'" (click)="seleccionarMonto(10)">$10</button>
+              <button class="btn fw-bold px-3 py-2" [ngClass]="cantidadARecargar === 25 ? 'btn-primary' : 'btn-outline-secondary text-white'" (click)="seleccionarMonto(25)">$25</button>
+              <button class="btn fw-bold px-3 py-2" [ngClass]="cantidadARecargar === 50 ? 'btn-primary' : 'btn-outline-secondary text-white'" (click)="seleccionarMonto(50)">$50</button>
+              <button class="btn fw-bold px-3 py-2" [ngClass]="cantidadARecargar === 100 ? 'btn-primary' : 'btn-outline-secondary text-white'" (click)="seleccionarMonto(100)">$100</button>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label text-muted small fw-bold">O ingresa otro monto:</label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted">$</span>
+                <input type="number" class="form-control bg-dark text-white border-secondary shadow-none fw-bold" [(ngModel)]="cantidadARecargar" min="5">
+              </div>
+              <small class="text-danger mt-1 d-block" *ngIf="cantidadARecargar < 5">El monto mínimo es de 5 USD</small>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA -->
+          <div class="col-md-6 ps-md-4">
+            <div class="bg-dark p-4 rounded-4 h-100 border border-secondary border-opacity-25">
+                <h6 class="fw-bold text-center text-white mb-4">Con ${{ cantidadARecargar }} podrías enviar:</h6>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="text-muted"><i class="bi bi-megaphone text-warning me-2"></i> Marketing</span>
+                  <span class="badge bg-secondary bg-opacity-25 text-white fs-6 px-3 py-2 rounded-pill">{{ estimacionMarketing }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="text-muted"><i class="bi bi-bell text-info me-2"></i> Utilidad</span>
+                  <span class="badge bg-secondary bg-opacity-25 text-white fs-6 px-3 py-2 rounded-pill">{{ estimacionUtilidad }}</span>
+                </div>
+                
+                <small class="text-muted d-block mt-4" style="font-size: 0.7rem; line-height: 1.4;">
+                  * Cálculos aproximados según tarifa estándar. Meta cobra por conversaciones abiertas por 24 horas.
+                </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-top border-secondary border-opacity-25">
+        <button type="button" class="btn btn-outline-secondary border-opacity-25 text-white" (click)="cerrarModalRecarga()" [disabled]="cargandoPago">Cancelar</button>
+        <button type="button" class="btn btn-primary fw-bold px-4" (click)="iniciarPagoSpidi()" [disabled]="cantidadARecargar < 5 || cargandoPago">
+          <span *ngIf="cargandoPago" class="spinner-border spinner-border-sm me-2"></span>
+          {{ cargandoPago ? 'Generando...' : 'Pagar $' + cantidadARecargar }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

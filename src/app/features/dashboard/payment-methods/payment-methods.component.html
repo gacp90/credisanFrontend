@@ -1,0 +1,137 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="text-white fw-bold mb-1">Cuentas y Métodos de Pago</h4>
+    <p class="text-muted small mb-0">Administra las cuentas donde recibes el dinero</p>
+  </div>
+  <button class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" (click)="abrirModalNuevo(modalMetodo)">
+    <i class="bi bi-plus-lg"></i> Nuevo Método
+  </button>
+</div>
+
+<div *ngIf="isLoading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status"></div>
+</div>
+
+<div *ngIf="!isLoading && paymentMethods.length === 0" class="text-center py-5 bg-dark rounded-4" style="background-color: var(--bs-card-bg) !important;">
+  <i class="bi bi-wallet2 text-muted" style="font-size: 3rem;"></i>
+  <h5 class="text-white fw-medium mt-3">Sin métodos de pago</h5>
+  <p class="text-muted small">Registra tu primer banco, pago móvil o wallet cripto.</p>
+</div>
+
+<div class="row g-4" *ngIf="!isLoading && paymentMethods.length > 0">
+  <div class="col-12 col-md-6 col-lg-4" *ngFor="let method of paymentMethods">
+    <div class="card border-0 shadow-sm h-100" style="background-color: var(--bs-card-bg); border-radius: 1rem;">
+      <div class="card-body p-4 d-flex flex-column">
+        
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center border border-secondary border-opacity-25" style="width: 45px; height: 45px;">
+              <i class="bi fs-5" [ngClass]="getCurrencyIcon(method.currency)"></i>
+            </div>
+            <div>
+              <h6 class="text-white fw-bold mb-0 text-truncate" [title]="method.name">{{ method.name }}</h6>
+              <span class="badge bg-secondary bg-opacity-25 text-light fw-normal mt-1">{{ method.currency }}</span>
+            </div>
+          </div>
+          
+          <div ngbDropdown placement="bottom-end">
+            <button class="btn btn-sm btn-link text-muted p-0 shadow-none" ngbDropdownToggle><i class="bi bi-three-dots-vertical"></i></button>
+            <div ngbDropdownMenu class="dropdown-menu-dark shadow-sm border-secondary border-opacity-25">
+              <button ngbDropdownItem (click)="abrirModalEditar(modalMetodo, method)"><i class="bi bi-pencil me-2"></i> Editar</button>
+              <div class="dropdown-divider border-secondary"></div>
+              <button ngbDropdownItem class="text-danger" (click)="eliminarMetodo(method._id)"><i class="bi bi-trash me-2"></i> Desactivar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalles (Mostramos solo lo que exista en details) -->
+        <div class="bg-dark p-3 rounded-3 mb-3 border border-secondary border-opacity-10 flex-grow-1">
+          <p class="text-muted small mb-1" *ngIf="method.details?.bank"><strong>Banco:</strong> <span class="text-white">{{ method.details.bank }}</span></p>
+          <p class="text-muted small mb-1" *ngIf="method.details?.phone"><strong>Teléfono:</strong> <span class="text-white">{{ method.details.phone }}</span></p>
+          <p class="text-muted small mb-1" *ngIf="method.details?.documentId"><strong>ID/Cédula:</strong> <span class="text-white">{{ method.details.documentId }}</span></p>
+          <p class="text-muted small mb-1" *ngIf="method.details?.accountNumber"><strong>Cuenta:</strong> <span class="text-white">{{ method.details.accountNumber }}</span></p>
+          <p class="text-muted small mb-0" *ngIf="method.details?.email"><strong>Email:</strong> <span class="text-white">{{ method.details.email }}</span></p>
+        </div>
+
+        <!-- Tasa de Cambio -->
+        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+          <span class="text-muted small">Tasa actual:</span>
+          <div class="text-end">
+            <span class="text-white fw-bold d-block">{{ method.currentExchangeRate | number:'1.2-4' }}</span>
+            <small class="text-muted" style="font-size: 0.65rem;" *ngIf="method.exchangeRateUpdatedAt">Act: {{ method.exchangeRateUpdatedAt | date:'short' }}</small>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Formulario -->
+<ng-template #modalMetodo let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4">
+      <h5 class="modal-title text-white fw-bold">{{ editingMethodId ? 'Editar Método' : 'Nuevo Método de Pago' }}</h5>
+      <button type="button" class="btn-close btn-close-white shadow-none" (click)="modal.dismiss()"></button>
+    </div>
+    
+    <div class="modal-body p-4">
+      <form [formGroup]="paymentForm" (ngSubmit)="guardarMetodo()">
+        
+        <div class="row mb-3">
+          <div class="col-8">
+            <label class="form-label text-white small fw-medium">Nombre (Ej: Banesco Pago Móvil)</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" formControlName="name">
+          </div>
+          <div class="col-4">
+            <label class="form-label text-white small fw-medium">Moneda</label>
+            <select class="form-select bg-dark text-white border-secondary" formControlName="currency">
+              <option value="USD">USD</option>
+              <option value="VES">VES</option>
+              <option value="COP">COP</option>
+              <option value="USDT">USDT</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-white small fw-medium">Tasa de Cambio (respecto a tu moneda base)</label>
+          <input type="number" step="0.01" class="form-control bg-dark text-white border-secondary" formControlName="currentExchangeRate">
+          <small class="text-muted">Si es Dólares, deja 1. Si es Bolívares, pon la tasa del día.</small>
+        </div>
+
+        <h6 class="text-primary small fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2">Detalles de la Cuenta (Opcional)</h6>
+        
+        <div class="row mb-3">
+          <div class="col-6">
+            <label class="form-label text-muted small">Banco / Plataforma</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" formControlName="bank" placeholder="Ej: Mercantil">
+          </div>
+          <div class="col-6">
+            <label class="form-label text-muted small">Identificación (Cédula/RIF)</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" formControlName="documentId" placeholder="Ej: V-12345678">
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-6">
+            <label class="form-label text-muted small">Teléfono</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" formControlName="phone">
+          </div>
+          <div class="col-6">
+            <label class="form-label text-muted small">N° Cuenta o Correo (Zelle)</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" formControlName="accountNumber">
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-secondary text-white border-opacity-25" (click)="modal.dismiss()">Cancelar</button>
+          <button type="submit" class="btn btn-primary d-flex align-items-center gap-2" [disabled]="isSaving">
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm"></span>
+            {{ isSaving ? 'Guardando...' : (editingMethodId ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</ng-template>

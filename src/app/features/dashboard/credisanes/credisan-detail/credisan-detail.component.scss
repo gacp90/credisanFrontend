@@ -1,0 +1,7 @@
+.transition-all {
+  transition: all 0.15s ease-in-out;
+}
+.scale-up {
+  transform: scale(1.03);
+  z-index: 10;
+}

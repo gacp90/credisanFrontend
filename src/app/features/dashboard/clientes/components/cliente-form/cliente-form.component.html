@@ -1,0 +1,66 @@
+<form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()">
+  
+  <!-- Fila 1: Correo y Nombre -->
+  <div class="mb-3">
+    <label class="form-label text-white small fw-medium">Correo Electrónico</label>
+    <input type="email" class="form-control bg-dark text-white border-secondary shadow-none" formControlName="email" placeholder="ejemplo@correo.com" [ngClass]="{'is-invalid': f['email'].invalid && f['email'].touched}">
+    <div class="invalid-feedback" *ngIf="f['email'].errors?.['required']">El correo es obligatorio.</div>
+    <div class="invalid-feedback" *ngIf="f['email'].errors?.['email']">Debe ser un correo válido.</div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label text-white small fw-medium">Nombre Completo</label>
+    <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" formControlName="fullName" placeholder="Ej. Juan Pérez" [ngClass]="{'is-invalid': f['fullName'].invalid && f['fullName'].touched}">
+    <div class="invalid-feedback" *ngIf="f['fullName'].errors?.['required']">El nombre es obligatorio.</div>
+  </div>
+
+  <!-- Fila 2: Documento y Teléfono -->
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label text-white small fw-medium">Documento de Identidad</label>
+      <input type="text" class="form-control bg-dark text-white border-secondary shadow-none" formControlName="cedula" placeholder="Ej. V-12345678" [ngClass]="{'is-invalid': f['cedula'].invalid && f['cedula'].touched}">
+      <div class="invalid-feedback" *ngIf="f['cedula'].errors?.['required']">El documento es obligatorio.</div>
+    </div>
+
+    <div class="row">
+      <!-- Código de País -->
+      <div class="col-4 mb-3">
+        <label class="form-label text-white small fw-medium">Código</label>
+        <input type="text" 
+              class="form-control bg-dark text-white border-secondary shadow-none" 
+              formControlName="countryCode" 
+              placeholder="Ej. +58"
+              [ngClass]="{'is-invalid': f['countryCode'].invalid && f['countryCode'].touched}">
+        <div class="invalid-feedback" *ngIf="f['countryCode'].errors?.['required']">
+          Requerido.
+        </div>
+      </div>
+
+      <!-- Número de Teléfono -->
+      <div class="col-8 mb-3">
+        <label class="form-label text-white small fw-medium">Teléfono</label>
+        <input type="text" 
+              class="form-control bg-dark text-white border-secondary shadow-none" 
+              formControlName="phoneNumber" 
+              placeholder="Ej. 4141234567"
+              [ngClass]="{'is-invalid': f['phoneNumber'].invalid && f['phoneNumber'].touched}">
+        <div class="invalid-feedback" *ngIf="f['phoneNumber'].errors?.['required']">
+          El teléfono es obligatorio.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer del Formulario (Botones) -->
+  <div class="d-flex justify-content-end gap-2 pt-3 border-top border-secondary border-opacity-25 mt-2">
+    <!-- data-bs-dismiss="modal" cierra automáticamente el modal de Bootstrap -->
+    <button type="button" class="btn btn-outline-secondary text-white border-opacity-25 shadow-none" data-bs-dismiss="modal" (click)="cancelar()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-primary shadow-sm d-flex align-items-center gap-2" [disabled]="isLoading">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      {{ isLoading ? 'Guardando...' : 'Registrar Cliente' }}
+    </button>
+  </div>
+  
+</form>

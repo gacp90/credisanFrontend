@@ -1,0 +1,59 @@
+<!-- Overlay oscuro para móviles -->
+<div class="sidebar-overlay d-lg-none" [class.show]="isOpen$ | async" (click)="close()"></div>
+
+<!-- Contenedor del Sidebar -->
+<aside class="sidebar-container d-flex flex-column flex-shrink-0 p-3 shadow-sm border-end border-secondary border-opacity-25" 
+       [class.show]="isOpen$ | async"
+       style="background-color: var(--bs-card-bg);">
+  
+  <a class="d-flex align-items-center gap-3 mb-4 text-white text-decoration-none px-2 mt-2" routerLink="/dashboard" (click)="close()">
+    <div class="bg-primary rounded p-2 d-flex align-items-center justify-content-center shadow-sm">
+      <i class="bi bi-wallet2 text-white fs-5"></i>
+    </div>
+    <span class="fs-4 fw-bold d-none d-lg-block" style="letter-spacing: -0.5px;">CREDISANES</span>
+    <!-- Botón X solo visible en móvil -->
+    <i class="bi bi-x-lg ms-auto d-lg-none fs-4" (click)="close()"></i>
+  </a>
+
+  <hr class="border-secondary border-opacity-50 mx-2 mt-0 mb-4">
+
+  <ul class="nav flex-column mb-auto gap-2">
+    <li class="nav-item">
+      <a routerLink="/dashboard/sanes" routerLinkActive="active" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 custom-nav-link" (click)="close()">
+        <i class="bi bi-calendar-week fs-5"></i>
+        <span class="fw-medium">Sanes</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/dashboard/clientes" routerLinkActive="active" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 custom-nav-link" (click)="close()">
+        <i class="bi bi-people fs-5"></i>
+        <span class="fw-medium">Clientes</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/dashboard/transacciones" routerLinkActive="active" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 custom-nav-link" (click)="close()">
+        <i class="bi bi-cash fs-5"></i>
+        <span class="fw-medium">Transacciones</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/dashboard/metodos-pago" routerLinkActive="active" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 custom-nav-link" (click)="close()">
+        <i class="bi bi-cash-coin fs-5"></i>
+        <span class="fw-medium">Metodos de Pagos</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/dashboard/plantillas" routerLinkActive="active" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 custom-nav-link" (click)="close()">
+        <i class="bi bi-layout-text-window fs-5"></i>
+        <span class="fw-medium">Plantillas</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a routerLink="/dashboard/whatsapp-settings" routerLinkActive="active" class="nav-link d-flex align-items-center gap-3 py-2 px-3 rounded-3 custom-nav-link" (click)="close()">
+        <i class="bi bi-gear fs-5"></i>
+        <span class="fw-medium">Configuracion de whatsapp</span>
+      </a>
+    </li>
+  </ul>
+</aside>
