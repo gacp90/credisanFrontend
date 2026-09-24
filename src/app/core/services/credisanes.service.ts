@@ -48,8 +48,8 @@ export class CredisanesService {
   }
 
   // --- SORTEO POR RONDA ---
-  executeDraw(credisanId: string, roundNumber: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${credisanId}/draw`, { roundNumber });
+  executeDraw(credisanId: string, payload: { roundNumber: number, preselectedAssignmentId?: string | null }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${credisanId}/draw`, payload);
   }
 
   // --- PAGOS Y CUOTAS ---

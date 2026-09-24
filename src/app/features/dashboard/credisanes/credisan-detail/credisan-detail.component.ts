@@ -45,9 +45,15 @@ export class CredisanDetailComponent implements OnInit {
 
   // --- VARIABLES PARA EL PANEL ACTIVO (SORTEO) ---
   totalRounds: number = 0;
-  currentRoundNumber: number = 2; // Inicia en 2 porque el Puesto 1 es de Administración
+  currentRoundNumber: number = 2; 
   isDrawing: boolean = false;
   winnerAnimation: string | null = null;
+
+  // NUEVAS VARIABLES
+  private modalPreselectRef!: NgbModalRef;
+  preselectedWinnerId: string | null = null; // Guarda el ID del ganador secreto
+  participantesEnEspera: any[] = []; // Array para el select del engranaje
+  ruletaTextActual: string = '¿Quién ganará?';
 
   ngOnInit() {
     this.credisanId = this.route.snapshot.paramMap.get('id') || '';
@@ -58,6 +64,31 @@ export class CredisanDetailComponent implements OnInit {
       distinctUntilChanged()
     ).subscribe(term => {
       this.ejecutarBusqueda(term);
+    });
+  }
+
+  abrirEngranaje(content: any) {
+    // Filtramos a los que aún no tienen puesto
+    this.participantesEnEspera = this.assignments.filter(a => a.positionNumber === null);
+    
+    if (this.participantesEnEspera.length === 0) {
+      Swal.fire('Atención', 'Ya no hay participantes en espera.', 'info');
+      return;
+    }
+    
+    this.modalPreselectRef = this.modalService.open(content, { centered: true, size: 'sm', windowClass: 'dark-modal' });
+  }
+
+  guardarPreseleccion() {
+    this.modalPreselectRef.close();
+    // No mostramos ninguna alerta exitosa gigante, solo un toast pequeñito para ser discretos
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: 'Configurado silenciosamente',
+      showConfirmButton: false,
+      timer: 1500
     });
   }
 
@@ -222,15 +253,23 @@ export class CredisanDetailComponent implements OnInit {
       if (result.isConfirmed) {
         this.isDrawing = true;
         
-        // 1. Llamamos al backend para que decida el ganador real
-        this.credisanesService.executeDraw(this.credisanId, this.currentRoundNumber).subscribe({
+        // 1. Preparamos el Body. Le enviamos el ID preseleccionado si existe.
+        const payload = {
+          roundNumber: this.currentRoundNumber,
+          preselectedAssignmentId: this.preselectedWinnerId // Esto lo recibe tu backend nuevo
+        };
+        
+        this.credisanesService.executeDraw(this.credisanId, payload).subscribe({
           next: (res) => {
-            // Guardamos quién es el ganador
+            // res.winnerId debería devolverte el tenantClientId o el objeto según tu backend
             const ganador = this.assignments.find(a => a.tenantClientId._id === res.winnerId || a.tenantClientId === res.winnerId);
             this.winnerAnimation = ganador?.tenantClientId?.userId?.fullName || 'Participante Afortunado';
             
-            // 2. Iniciamos el efecto visual de Ruleta en el Frontend
-            this.iniciarEfectoRuleta(ganador);
+            // Limpiamos el secreto para que el próximo sorteo vuelva a ser aleatorio si el admin no lo cambia
+            this.preselectedWinnerId = null; 
+
+            // 2. Iniciamos el EFECTO DE TEXTO RÁPIDO
+            this.iniciarEfectoTextoRuleta();
           },
           error: (err) => {
             this.isDrawing = false;
@@ -240,6 +279,46 @@ export class CredisanDetailComponent implements OnInit {
       }
     });
   }
+
+  private iniciarEfectoTextoRuleta() {
+    const elegibles = this.assignments.filter(a => a.positionNumber === null);
+    
+    if (elegibles.length === 0) {
+      this.finalizarSorteo();
+      return;
+    }
+
+    let spins = 0;
+    const maxSpins = 40; // Da 40 vueltas de nombres
+    let currentDelay = 30; // Arranca súper rápido (30ms)
+
+    const spin = () => {
+      const randomIndex = Math.floor(Math.random() * elegibles.length);
+      // Muestra nombres aleatorios rápidamente
+      this.ruletaTextActual = elegibles[randomIndex].tenantClientId?.userId?.fullName;
+      spins++;
+
+      if (spins < maxSpins) {
+        // En los últimos 15 saltos, empezamos a frenar drásticamente (fricción)
+        if (spins > (maxSpins - 15)) {
+            currentDelay += 40; 
+        } else {
+            currentDelay += 5; // Frenado muy ligero al principio
+        }
+        setTimeout(spin, currentDelay);
+      } else {
+        // Último salto: se detiene FIRME en el ganador real dictado por el backend
+        this.ruletaTextActual = this.winnerAnimation || '¡Ganador!';
+        
+        // Esperamos 1 segundo viendo el nombre antes de soltar el confeti/alerta
+        setTimeout(() => this.finalizarSorteo(), 1200);
+      }
+    };
+
+    spin(); // Inicia la magia
+  }
+
+  
 
   // NUEVO: Método para simular la ruleta visual
   private iniciarEfectoRuleta(ganadorReal: any) {
@@ -281,7 +360,7 @@ export class CredisanDetailComponent implements OnInit {
 
   private finalizarSorteo() {
     this.isDrawing = false;
-    this.highlightedAssignmentId = null; // Apagamos la luz de la tarjeta
+    this.ruletaTextActual = '¿Quién ganará?'; // Resetea el texto central
     
     Swal.fire({
       title: '¡Tenemos un Ganador!',
@@ -289,7 +368,7 @@ export class CredisanDetailComponent implements OnInit {
       icon: 'success',
       confirmButtonColor: '#0d6efd'
     }).then(() => {
-      this.loadAssignments(); // Recargamos para ver los cambios oficiales
+      this.loadAssignments(); 
     });
   }
 
@@ -543,5 +622,6 @@ export class CredisanDetailComponent implements OnInit {
       }
     });
   }
+  
 
 }

@@ -164,35 +164,46 @@
   <div *ngIf="credisan.status === 'ACTIVE'" class="mt-4">
   
     <!-- Módulo de Sorteo (Más compacto y arriba) -->
-    <div class="row justify-content-center mb-4">
-      <div class="col-12 col-md-8 col-lg-5">
-        <div class="card border-0 shadow-lg text-center" style="background: linear-gradient(145deg, var(--bs-card-bg) 0%, #1a1d24 100%); border-radius: 1rem;">
-          <div class="card-body p-4 d-flex align-items-center justify-content-between gap-3">
-            
-            <div class="text-start">
-              <h6 class="text-white fw-bold mb-1">Sorteo de Puestos</h6>
-              <p class="text-muted mb-3" style="font-size: 0.75rem;">Haz clic para girar la ruleta y asignar el bote.</p>
+    <!-- Módulo de Sorteo Cinemático -->
+    <div class="row justify-content-center mb-5">
+      <div class="col-12 col-md-10 col-lg-8">
+        
+        <!-- Tarjeta Principal del Sorteo -->
+        <div class="card border-0 shadow-lg position-relative overflow-hidden" style="background: linear-gradient(145deg, #1a1d24 0%, var(--bs-card-bg) 100%); border-radius: 1.5rem;">
+          
+          <!-- EL ENGRANAJE SECRETO (Esquina superior derecha, casi invisible) -->
+          <button class="btn btn-sm text-secondary opacity-25 position-absolute top-0 end-0 m-2 shadow-none" 
+                  (click)="abrirEngranaje(modalSecreto)" title="Ajustes avanzados">
+            <i class="bi bi-gear-fill"></i>
+          </button>
+
+          <div class="card-body p-5 text-center">
+            <h5 class="text-primary fw-bold text-uppercase tracking-widest mb-1">Gran Sorteo</h5>
+            <p class="text-muted small mb-4">Adjudicación del Puesto #{{ currentRoundNumber }}</p>
+
+            <!-- PANTALLA CENTRAL (Donde giran los nombres) -->
+            <div class="bg-dark rounded-4 p-4 mb-4 mx-auto border border-secondary border-opacity-25 shadow-inner d-flex align-items-center justify-content-center" 
+                 style="min-height: 120px; max-width: 500px; box-shadow: inset 0px 4px 15px rgba(0,0,0,0.5);">
               
-              <button class="btn btn-primary py-2 px-4 fw-bold shadow-sm" 
-                      (click)="ejecutarSorteo()"
-                      [disabled]="isDrawing || currentRoundNumber > totalRounds"
-                      style="border-radius: 0.5rem; font-size: 0.85rem;">
-                <span *ngIf="isDrawing" class="spinner-border spinner-border-sm me-2"></span>
-                <i *ngIf="!isDrawing" class="bi bi-dice-5-fill me-2"></i>
-                {{ isDrawing ? 'Girando...' : 'Iniciar Sorteo' }}
-              </button>
+              <h2 class="text-white fw-bolder mb-0 text-truncate px-3 transition-all" 
+                  [ngClass]="{'text-warning scale-up': !isDrawing && ruletaTextActual !== '¿Quién ganará?'}">
+                {{ isDrawing ? ruletaTextActual : (ruletaTextActual !== '¿Quién ganará?' ? ruletaTextActual : '¿Listos?') }}
+              </h2>
+
             </div>
 
-            <div class="bg-dark rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" 
-                 style="width: 100px; height: 100px; border: 3px solid var(--bs-primary); box-shadow: 0 0 15px rgba(13, 110, 253, 0.2);">
-              <div class="text-center">
-                <span class="d-block text-primary fw-bold" style="font-size: 0.6rem; letter-spacing: 1px;">PUESTO</span>
-                <span class="text-white fw-bold lh-1" style="font-size: 2.5rem;">{{ currentRoundNumber > totalRounds ? 'Fin' : '#' + currentRoundNumber }}</span>
-              </div>
-            </div>
-
+            <!-- BOTÓN DE GIRO -->
+            <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-lg" 
+                    (click)="ejecutarSorteo()"
+                    [disabled]="isDrawing || currentRoundNumber > totalRounds"
+                    style="letter-spacing: 1px;">
+              <span *ngIf="isDrawing" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!isDrawing" class="bi bi-play-circle-fill me-2 fs-5"></i>
+              {{ isDrawing ? 'Sorteando...' : 'GIRAR RULETA' }}
+            </button>
           </div>
         </div>
+
       </div>
     </div>
   
@@ -520,6 +531,38 @@
         <i *ngIf="!isSendingWp" class="bi bi-send-fill"></i>
         {{ isSendingWp ? 'Procesando...' : 'Iniciar Campaña' }}
       </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- MODAL SECRETO (ENGRANAJE) -->
+<ng-template #modalSecreto let-modal>
+  <div class="modal-content border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+    <div class="modal-header border-bottom border-secondary border-opacity-25 py-2 px-3 bg-dark">
+      <h6 class="modal-title text-muted small fw-bold mb-0">
+        <i class="bi bi-gear me-1"></i> Modo Guiado
+      </h6>
+      <button type="button" class="btn-close btn-close-white shadow-none" (click)="modal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body p-4">
+      <p class="small text-white opacity-75 mb-3">
+        Selecciona a un participante para que sea el <strong>ganador asegurado</strong> de este próximo giro. 
+        Si lo dejas en "Aleatorio", el sistema elegirá la suerte. La animación se verá igual para el público.
+      </p>
+
+      <label class="form-label text-warning small fw-bold mb-2">Destino de la ruleta:</label>
+      <select class="form-select bg-dark text-white border-secondary shadow-none" [(ngModel)]="preselectedWinnerId">
+        <option [ngValue]="null">--- Sorteo 100% Aleatorio ---</option>
+        <option *ngFor="let p of participantesEnEspera" [ngValue]="p._id">
+          {{ p.tenantClientId?.userId?.fullName }} ({{ p.tenantClientId?.userId?.cedula }})
+        </option>
+      </select>
+    </div>
+
+    <div class="modal-footer border-top border-secondary border-opacity-25 bg-dark">
+      <button type="button" class="btn btn-sm btn-outline-secondary text-white" (click)="modal.dismiss()">Cancelar</button>
+      <button type="button" class="btn btn-sm btn-primary px-3" (click)="guardarPreseleccion()">Fijar Ganador</button>
     </div>
   </div>
 </ng-template>

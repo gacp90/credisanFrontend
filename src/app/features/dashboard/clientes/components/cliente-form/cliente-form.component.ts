@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, inject, SimpleChange
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TenantClientsService } from '../../../../../core/services/tenant-clients.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cliente-form',
@@ -23,7 +24,7 @@ export class ClienteFormComponent implements OnChanges {
     email: ['', [Validators.required, Validators.email]],
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     cedula: ['', [Validators.required]],
-    countryCode: ['+58', [Validators.required]], 
+    countryCode: ['58', [Validators.required]], 
     phoneNumber: ['', [Validators.required]] 
   });
 
@@ -63,7 +64,14 @@ export class ClienteFormComponent implements OnChanges {
       this.clientsService.updateClient(this.clienteData._id, formData).subscribe({
         next: (response) => {
           this.isLoading = false;
-          this.onSaved.emit(response); 
+          this.onSaved.emit(response);
+          this.clienteForm.reset({ countryCode: '58' });
+          Swal.fire({
+            title: 'Operacion Exitosa',
+            text: 'Se ha guardado correctamente.',
+            icon: 'success',
+            confirmButtonColor: '#0d6efd'
+          });
         },
         error: (err) => { this.isLoading = false; console.error(err); }
       });
