@@ -82,14 +82,7 @@ export class CredisanDetailComponent implements OnInit {
   guardarPreseleccion() {
     this.modalPreselectRef.close();
     // No mostramos ninguna alerta exitosa gigante, solo un toast pequeñito para ser discretos
-    Swal.fire({
-      toast: true,
-      position: 'top-end',
-      icon: 'success',
-      title: 'Configurado silenciosamente',
-      showConfirmButton: false,
-      timer: 1500
-    });
+    
   }
 
   loadData() {
@@ -364,7 +357,7 @@ export class CredisanDetailComponent implements OnInit {
     
     Swal.fire({
       title: '¡Tenemos un Ganador!',
-      html: `El Puesto #${this.currentRoundNumber - 1} fue adjudicado a:<br><strong class="fs-4 text-primary">${this.winnerAnimation}</strong>`,
+      html: `El Puesto #${this.currentRoundNumber} fue adjudicado a:<br><strong class="fs-4 text-primary">${this.winnerAnimation}</strong>`,
       icon: 'success',
       confirmButtonColor: '#0d6efd'
     }).then(() => {
